@@ -1,0 +1,3 @@
+backup_dir: "/default/backup/path"
+backup_type: "offline"
+samba_server: "localhost"

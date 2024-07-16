@@ -1,0 +1,5 @@
+---
+- name: "Create offline backup"
+  command: >
+    samba-tool domain backup offline --targetdir={{ backup_dir }}
+  become: true
