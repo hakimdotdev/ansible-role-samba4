@@ -1,0 +1,19 @@
+---
+- name: "Ensure Samba users are present"
+  user:
+    name: "{{ item.name }}"
+    comment: "{{ item.comment | default('Samba user') }}"
+    password: "{{ item.password | default(omit) }}"
+    state: present
+    create_home: yes
+    home: "/home/{{ item.name }}"
+  loop: "{{ samba_users }}"
+  become: true
+
+- name: "Set Samba passwords for users"
+  command: "smbpasswd -a {{ item.name }} -s"
+  args:
+    stdin: "{{ item.password }}"
+  loop: "{{ samba_users }}"
+  when: item.password is defined
+  become: true

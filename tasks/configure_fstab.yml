@@ -1,0 +1,8 @@
+---
+- name: "Edit Fstab"
+  replace:
+    path: /etc/fstab
+    regexp: 'errors=remount-ro 0'
+    replace: 'user_xattr,acl,barrier=1,errors=remount-ro,relatime 0'
+    backup: yes
+  become: true

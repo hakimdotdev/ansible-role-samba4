@@ -1,0 +1,30 @@
+---
+- name: "Ensure Samba share directories exist"
+  file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ item.owner | default('root') }}"
+    group: "{{ item.group | default('root') }}"
+    mode: "{{ item.mode | default('0755') }}"
+  loop: "{{ samba_shares }}"
+  become: true
+
+- name: "Configure Samba shares in smb.conf"
+  blockinfile:
+    path: "{{ samba_paths.smb_conf }}"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK"
+    block: |
+      {% for share in samba_shares %}
+      [{{ share.name }}]
+      path = {{ share.path }}
+      browseable = {{ share.browseable | default('yes') }}
+      guest ok = {{ share.guest_ok | default('no') }}
+      read only = {{ share.read_only | default('no') }}
+      {% if share.additional_options is defined %}
+      {% for key, value in share.additional_options.items() %}
+      {{ key }} = {{ value }}
+      {% endfor %}
+      {% endif %}
+      {% endfor %}
+  become: true
+  notify: "Restart Samba"

@@ -1,0 +1,16 @@
+---
+- name: "Allow traffic for Application Samba4 AD-DC"
+  ufw:
+    rule: allow
+    name: Samba
+  become: true
+
+- name: "Allow all DNS traffic on port 53/tcp"
+  ufw:
+    rule: allow
+    port: '53'
+    proto: "{{ item }}"
+  with_items:
+    - tcp
+    - udp
+  become: true

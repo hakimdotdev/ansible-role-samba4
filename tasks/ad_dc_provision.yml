@@ -1,0 +1,42 @@
+---
+- name: "Provision Samba AD DC"
+  command: >
+    samba-tool domain provision
+    --use-rfc2307
+    --realm="{{ samba_realm }}"
+    --domain="{{ samba_domain }}"
+    --adminpass="{{ samba_admin_password }}"
+    --server-role=dc
+    --dns-backend="{{ samba_dns_backend }}"
+  become: true
+  args:
+    creates: "/var/lib/samba/private/sam.ldb"
+
+- name: "Configure Kerberos"
+  template:
+    src: "krb5.conf.j2"
+    dest: "/etc/krb5.conf"
+  notify: Restart Samba
+  become: true
+
+- name: "Configure BIND9 for Samba"
+  when: samba_dns_backend == "BIND9_DLZ"
+  block:
+    - name: "Create BIND9 directory for Samba"
+      file:
+        path: /etc/bind/samba
+        state: directory
+      become: true
+
+    - name: "Configure BIND9 named.conf.local"
+      blockinfile:
+        path: /etc/bind/named.conf.local
+        block: |
+          include "/var/lib/samba/bind-dns/named.conf";
+      become: true
+
+    - name: "Restart BIND9 service"
+      service:
+        name: bind9
+        state: restarted
+      become: true

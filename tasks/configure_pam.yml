@@ -1,0 +1,11 @@
+---
+- name: "Configure PAM Configuration"
+  shell: DEBIAN_FRONTEND=noninteractive pam-auth-update
+  become: true
+
+- name: "Configure PAM - /etc/pam.d/common-account"
+  lineinfile:
+    path: /etc/pam.d/common-account
+    line: 'session    required    pam_mkhomedir.so    skel=/etc/skel/    umask=0022'
+    backup: yes
+  become: true

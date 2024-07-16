@@ -1,0 +1,29 @@
+---
+- name: "Include OS-specific variables"
+  include_vars: "{{ ansible_distribution | lower }}.yml"
+
+- name: "Install Samba packages"
+  include_tasks: install.yml
+
+- name: "Configure DNS settings"
+  include_tasks: configure_dns.yml
+
+- name: "Configure Samba"
+  include_tasks: configure_samba.yml
+
+- name: "Create Samba users"
+  include_tasks: users.yml
+  when: samba_users | length > 0
+
+- name: "Configure Samba shares"
+  include_tasks: shares.yml
+  when: samba_shares | length > 0
+
+- name: "Configure PAM settings"
+  include_tasks: configure_pam.yml
+
+- name: "Configure /etc/fstab"
+  include_tasks: configure_fstab.yml
+
+- name: "Enable and configure firewall"
+  include_tasks: configure_firewall.yml

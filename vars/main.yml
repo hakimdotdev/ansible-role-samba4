@@ -1,0 +1,24 @@
+---
+samba_packages:
+  - "samba"
+  - "samba-client"
+  - "samba-common"
+  - "samba-libs"
+  - "krb5-user"
+  - "winbind"
+  - "libpam-winbind"
+  - "libnss-winbind"
+  - "smbclient"
+  - "python3-samba"
+  - "acl"
+  - "attr"
+  - "ntp"
+  - "dnsutils"
+  - "libpam-krb5"
+  - "libpam-ccreds"
+  - "nscd"
+
+bind9_packages:
+  - "bind9"
+  - "bind9utils"
+  - "bind9-doc"

@@ -1,0 +1,13 @@
+---
+- name: "Install required Samba packages"
+  apt:
+    name: "{{ samba_packages }}"
+    state: present
+  become: true
+
+- name: "Install BIND9 packages"
+  apt:
+    name: "{{ bind9_packages }}"
+    state: present
+  when: samba_dns_backend == "BIND9_DLZ"
+  become: true

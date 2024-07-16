@@ -1,0 +1,22 @@
+---
+- name: "Copy smb.conf template"
+  template:
+    src: "smb.conf.j2"
+    dest: "{{ samba_paths.smb_conf }}"
+  notify: Restart Samba
+  become: true
+
+- name: "Configure DNS settings"
+  include_tasks: configure_dns.yml
+
+- name: "Set up Samba as a new AD DC"
+  when: samba_role == "ad_dc_provision"
+  include_tasks: ad_dc_provision.yml
+
+- name: "Join existing Samba AD DC"
+  when: samba_role == "ad_dc_join"
+  include_tasks: ad_dc_join.yml
+
+- name: "Set up Samba as a Member Server"
+  when: samba_role == "member_server"
+  include_tasks: member_server.yml

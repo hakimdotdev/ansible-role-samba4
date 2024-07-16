@@ -1,0 +1,41 @@
+[global]
+   workgroup = {{ samba_config.workgroup }}
+   realm = {{ samba_realm }}
+   netbios name = {{ samba_config.netbios_name }}
+   server role = {{ 'dc' if samba_role in ['ad_dc_provision', 'ad_dc_join'] else 'member server' }}
+   dns forwarder = {{ samba_dns_forwarder | default('8.8.8.8') }}
+   log file = {{ samba_config.log_file }}
+   log level = {{ samba_config.log_level }}
+   max log size = {{ samba_config.max_log_size }}
+   security = {{ samba_config.security }}
+   passdb backend = {{ samba_config.passdb_backend }}
+
+   printing = {{ samba_config.printing }}
+   printcap name = {{ samba_config.printcap_name }}
+   load printers = {{ samba_config.load_printers }}
+   disable spoolss = {{ samba_config.disable_spoolss }}
+
+{% if samba_config.show_additional_options %}
+   # Add additional advanced options here
+   {% for key, value in samba_advanced_options.items() %}
+   {{ key }} = {{ value }}
+   {% endfor %}
+{% endif %}
+
+{% if samba_printers.enabled %}
+[printers]
+   comment = All Printers
+   path = {{ samba_printers.printer_path }}
+   browseable = {{ samba_printers.printer_browseable }}
+   guest ok = {{ samba_printers.printer_guest_ok }}
+   writable = {{ samba_printers.printer_writable }}
+   printable = {{ samba_printers.printer_printable }}
+{% endif %}
+
+[homes]
+   comment = Home Directories
+   path = {{ samba_home_directories.path }}
+   browseable = {{ samba_home_directories.browseable }}
+   writable = {{ samba_home_directories.writable }}
+   create mask = {{ samba_home_directories.create_mask }}
+   directory mask = {{ samba_home_directories.directory_mask }}

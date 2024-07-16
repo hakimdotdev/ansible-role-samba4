@@ -1,0 +1,43 @@
+---
+- name: "Check if /etc/resolv.conf is a symlink"
+  stat:
+    path: /etc/resolv.conf
+  register: resolv_conf_stat
+
+- name: "Remove the symlink /etc/resolv.conf"
+  file:
+    path: /etc/resolv.conf
+    state: absent
+  when: resolv_conf_stat.stat.islnk is defined and resolv_conf_stat.stat.islnk
+  become: true
+
+- name: "Disable systemd-resolved service"
+  systemd:
+    name: systemd-resolved
+    enabled: no
+    state: stopped
+  become: true
+
+- name: "Create /etc/resolv.conf"
+  file:
+    path: /etc/resolv.conf
+    state: touch
+  become: true
+
+- name: "Configure resolv.conf"
+  lineinfile:
+    path: /etc/resolv.conf
+    state: present
+    create: yes
+    line: "{{ item }}"
+  with_items:
+    - "search {{ samba_realm | lower }}"
+    - "nameserver 127.0.0.1"
+    - "nameserver {{ samba_dns_forwarder | default('8.8.8.8') }}"
+  become: true
+
+- name: "Restart networking service"
+  service:
+    name: networking
+    state: restarted
+  become: true

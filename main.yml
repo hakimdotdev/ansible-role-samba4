@@ -1,0 +1,35 @@
+---
+samba_role: "member_server"  # ad_dc_provision, ad_dc_join, member_server
+samba_domain: "example.com"
+samba_realm: "EXAMPLE.COM"
+samba_admin_password: "YourStrongPassword"
+samba_dns_backend: "SAMBA_INTERNAL"  # SAMBA_INTERNAL or BIND9_DLZ
+
+samba_paths:
+  smb_conf: "/etc/samba/smb.conf"
+  keytab: "/etc/krb5.keytab"
+  nsswitch_conf: "/etc/nsswitch.conf"
+
+samba_advanced_options: {}  # Dictionary for any additional smb.conf params
+
+samba_config:
+  workgroup: "WORKGROUP"
+  netbios_name: "{{ ansible_hostname }}"
+  log_file: "/var/log/samba/%m.log"
+  log_level: 1
+  max_log_size: 1000
+  security: "ADS"
+  passdb_backend: "tdbsam"
+  printing: "cups"
+  printcap_name: "cups"
+  load_printers: "yes"
+  disable_spoolss: "no"
+  show_additional_options: false 
+
+samba_printers:
+  enabled: true
+  printer_path: "/var/spool/samba"
+  printer_browseable: "no"
+  printer_guest_ok: "no"
+  printer_writable: "no"
+  printer_printable: "yes"
