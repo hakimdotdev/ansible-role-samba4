@@ -8,7 +8,6 @@
     --adminpass="{{ samba_admin_password }}"
     --server-role=dc
     --dns-backend="{{ samba_dns_backend }}"
-  become: true
   args:
     creates: "/var/lib/samba/private/sam.ldb"
 
@@ -17,26 +16,35 @@
     src: "krb5.conf.j2"
     dest: "/etc/krb5.conf"
   notify: Restart Samba
-  become: true
 
-- name: "Configure BIND9 for Samba"
-  when: samba_dns_backend == "BIND9_DLZ"
-  block:
-    - name: "Create BIND9 directory for Samba"
-      file:
-        path: /etc/bind/samba
-        state: directory
-      become: true
+- name: "Restart Samba"
+  service:
+    name: samba
+    state: restarted
 
-    - name: "Configure BIND9 named.conf.local"
-      blockinfile:
-        path: /etc/bind/named.conf.local
-        block: |
-          include "/var/lib/samba/bind-dns/named.conf";
-      become: true
+- name: "Create a reverse DNS zone"
+  command: >
+    samba-tool dns zonecreate {{ samba_server_ip }} {{ reverse_dns_zone }} -U Administrator --password={{ samba_admin_password }}
+  when: reverse_dns_zone is defined
 
-    - name: "Restart BIND9 service"
-      service:
-        name: bind9
-        state: restarted
-      become: true
+- name: "Add PTR record to reverse DNS zone"
+  command: >
+    samba-tool dns add {{ samba_server_ip }} {{ reverse_dns_zone }} {{ reverse_dns_ptr }} PTR {{ samba_fqdn }} -U Administrator --password={{ samba_admin_password }}
+  when: reverse_dns_ptr is defined and samba_fqdn is defined
+
+- name: "Verify DNS configuration"
+  shell: >
+    host -t SRV _ldap._tcp.{{ samba_realm }}
+  register: dns_verification
+  failed_when: "'{{ samba_fqdn }}' not in dns_verification.stdout"
+  changed_when: false
+
+- name: "Verify Kerberos configuration"
+  expect:
+    command: kinit administrator@{{ samba_realm }}
+    responses:
+      (?i)Password for administrator@{{ samba_realm }}: "{{ samba_admin_password }}"
+  register: kerberos_verification
+  failed_when: kerberos_verification.rc != 0
+  changed_when: false
+  no_log: true
